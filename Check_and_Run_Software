@@ -1,0 +1,93 @@
+
+ 
+
+import time
+import os
+import subprocess
+from configparser import ConfigParser
+import re
+
+
+class TaskCheck:
+    task_index = 0
+
+    def __init__(self, task):
+        self.task = task
+        self.task_name = os.path.basename(task)
+
+    def processCount(self):
+        p = os.popen('tasklist /FI "IMAGENAME eq %s"' % self.task_name)
+        return p.read().count(self.task_name)
+
+    def timerStart(self):
+        while True:
+            if self.task_index > 10:
+                os.system("cls")
+               self.task_index = 0
+            print("等待3600秒后检查：%s" % self.task_name)
+            self.watch_exe()
+            time.sleep(3600)
+            self.task_index += 1
+
+    def closeExe(self):
+        subprocess.Popen(["taskkill", "/f", "/im", self.task_name])
+
+    def killProcessID(self, id):
+        subprocess.Popen("taskkill /PID {0}".format(id))
+
+    def processIDs(self):
+        # cmd_str = "tasklist | findstr /i {0}".format(self.task_name)
+        cmd_str = 'tasklist /FI "IMAGENAME eq {0}"'.format(self.task_name)
+        # print(cmd_str)
+        p = subprocess.Popen(cmd_str, stdout=subprocess.PIPE, bufsize=1, shell=True)
+        info = ""
+        for line in iter(p.stdout.readline, b''):
+            info += line.decode('gbk', 'ignore')
+        p.stdout.close()
+        p.wait()
+        ids = []
+        # print(info)
+        for line in info.split("\n"):
+            try:
+                m = re.search("(\d+)\sConsole", line, re.I)
+            except Exception as e:
+                print("Error:%s" % str(e))
+            if m is not None:
+                ids.append(int(m[1]))
+        # print(ids)
+        return ids
+
+    def watch_exe(self):
+        total = self.processCount()
+        if total < 1:
+            self.closeExe()
+            print("5秒后启动")
+            time.sleep(5)
+            print("未启动:%s" % self.task_name)
+            print(self.task)
+            print(subprocess.Popen(["cmd/c", "start", " ", self.task], shell=True))
+        else:
+            # if total > 1:
+            #     print("开启的软件个数为：%d" % total)
+            #     # self.closeExe()
+            #     ids.sort(reverse=True)
+            #     # 关闭第一个
+            #     print("关闭软件")
+            #     self.killProcessID(ids[0])
+            # else:
+            print("%s is running" % self.task_name)
+
+
+if __name__ == "__main__":
+    # cf = ConfigParser()
+    # cf.read("./exe.ini", encoding="utf-8")
+    # exe_file = cf.get("settings", "file")
+    exe_file = r"C:\Program Files\Box\Box\Box.exe"    # 需要检查和运行程序的路径
+    task = TaskCheck(exe_file)
+    task.timerStart()
+    # task.processIDs()
+    # input("enter test..")
+
+ 
+
+ 
