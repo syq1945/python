@@ -1,0 +1,56 @@
+# encoding:utf-8
+import pandas as pd
+import pymssql
+import time
+import os
+import pandas as pd
+
+excel_path=r"PlanQuantity.xlsx"
+df=pd.read_excel(excel_path)
+
+server = "A6168S01.wpcorpnet.com\DB02"
+user = "Tableau_Admin"
+password = "lm-china1"
+database = "Tableau"
+
+conn = pymssql.connect(server, user, password, database, charset="utf8")
+cursor=conn.cursor()
+
+sql_ifexistmonth='''
+SELECT *
+  FROM [Tableau].[db_owner].[PlanQuantity]
+  where [Month] in ('{0}','{1}') and [Mould] in ('{2}' ,'{3}')
+'''.format(df.values[0,0],df.values[1,0],df.values[0,1],df.values[1,1])
+# print(sql_ifexistmonth)  # 可以产出SQL代码是否正确
+cursor.execute(sql_ifexistmonth)
+a=cursor.fetchall()  # 获取执行SQL select语句后的结果
+if  a:
+    print("存在")
+    print("停止退出")
+else:
+    print("不存在")
+    print("运行代码")
+    for row in df.values:      # 使用循环语句来批量插入Excel中的所有行
+        sql_insert = '''
+        INSERT INTO [db_owner].[PlanQuantity]
+               ([Month]
+               ,[Mould]
+               ,[Quantity]
+               ,[Area])
+         VALUES
+               ('{0}'
+               ,'{1}'
+               ,'{2}'
+               ,'{3}')
+         '''.format(row[0],row[1],row[2],row[3])
+        # print(sql_insert)   # 可以检查插入sql语句是否正确
+
+  #  # 上面使用了占位符, 并使用str.format()函数
+
+    # cursor.execute(sql_insert0)
+    # cursor.execute(sql_insert1)
+    # cursor.close()
+    print("插入成功")
+
+cursor.close()
+conn.close()
