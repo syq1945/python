@@ -8,10 +8,10 @@ import pandas as pd
 excel_path=r"PlanQuantity.xlsx"
 df=pd.read_excel(excel_path)
 
-server = "A6168S01.wpcorpnet.com\DB02"
-user = "Tableau_Admin"
-password = "lm-china1"
-database = "Tableau"
+server = "YourSQLServerName"
+user = "SQLUserName"
+password = "SQLUserPassword"
+database = "SQLDatabase"
 
 conn = pymssql.connect(server, user, password, database, charset="utf8")
 cursor=conn.cursor()
